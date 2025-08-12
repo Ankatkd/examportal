@@ -1,17 +1,20 @@
-// In backend/config/db.js
-
-const mongoose = require('mongoose');
+// backend/config/db.js
+let isConnected = false;
 
 const connectDB = async () => {
+  if (isConnected) {
+    console.log("⚡ Using existing MongoDB connection");
+    return;
+  }
+
   try {
-    // We use process.env to get the variable from our .env file
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB Connected... ✅');
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    isConnected = conn.connections[0].readyState;
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (err) {
-    console.error(err.message);
-    // Exit process with failure
-    process.exit(1);
+    console.error("❌ MongoDB Error:", err.message);
+    throw new Error("MongoDB connection failed");
   }
 };
 
-module.exports = connectDB; // Export the function
+module.exports = connectDB;
